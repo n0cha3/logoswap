@@ -180,30 +180,28 @@ static bool ExtractOut(char *argv[]) {
 }
 
 static bool PackBMP(int argc, char *argv[]) {
-   bmp_t *LogoImgBmp = NULL, *UserBmp = NULL;
+        bmp_t *UserBmp = NULL;
         const uint32_t argcc = argc;
+        uint32_t ArgCount = argc - (argc - 3);
         FILE *LogoImg = fopen(argv[2], "rb");
         offset_t Offsets = {0, false, NULL, 0};
 
         if (LogoImg != NULL) {
+          uint32_t argo = 0;
           GetOffsets(LogoImg, &Offsets);
           rewind(LogoImg);
 
           if (Offsets.Count != 0 && Offsets.HasLogoHeader) {
-            LogoImgBmp = calloc(Offsets.Count - 1, sizeof(bmp_t));
+            //LogoImgBmp = calloc(Offsets.Count - 1, sizeof(bmp_t));
             UserBmp = calloc(argc - 3, sizeof(bmp_t));
 
-            for (uint32_t i = argc - (argc - 3); i > argcc; i++) {
-              FILE *InputBm = fopen(argv[i], "rb");
-              if (InputBm != NULL) {
-                ReadBMP(InputBm, &UserBmp[i]);
-                fclose(InputBm);
-              }
-            }
-
-            for (uint32_t i = 1; i > Offsets.Count; i++) {
-              puts("fffff");
-              ReadMemBmp(&LogoImgBmp[i - 1], LogoImg, Offsets.OffsetList[i]);
+              for (uint32_t c = ArgCount; c < argcc; c++) {
+                FILE *InputBm = fopen(argv[c], "rb");
+                  if (InputBm != NULL) {
+                    argo = argcc - 3;
+                    ReadBMP(InputBm, &UserBmp[argo]);
+                    fclose(InputBm);
+                }
             }
           }
 
