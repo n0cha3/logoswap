@@ -1,14 +1,7 @@
 #include "splash.h"
 
-bool IsLittleEndian(void) {
-  uint32_t a = 1;
-  if (*(char *)&a == 1) return true;
-  else return false;
-}
-
-
 size_t fread_offset(void *Dest, size_t SizeOfEach, size_t Count, FILE *FilePointer, size_t Offset) {
-  fseek(FilePointer, Offset, SEEK_SET);
+  fseek(FilePointer, (long)Offset, SEEK_SET);
   return fread(Dest, SizeOfEach, Count, FilePointer);
 }
 
