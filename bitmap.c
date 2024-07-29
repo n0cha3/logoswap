@@ -11,7 +11,7 @@ static bool CheckBmp(FILE *Bitmap) {
   else return false;
 }
 
-void ReadMemBmp(bmp_t *Bitmap, FILE *FilePointer, size_t Offset) {
+bool ReadMemBmp(bmp_t *Bitmap, FILE *FilePointer, size_t Offset) {
   if (FilePointer != NULL) {
     Bitmap->Data = calloc(64, sizeof(char));
     if (Bitmap->Data != NULL) {
@@ -19,13 +19,23 @@ void ReadMemBmp(bmp_t *Bitmap, FILE *FilePointer, size_t Offset) {
       GetBmpSize(Bitmap);
       Bitmap->RealSize = Bitmap->HeadSize;
       Bitmap->Data = realloc(Bitmap->Data, Bitmap->HeadSize);
-      fread_offset(Bitmap->Data, sizeof(char), Bitmap->RealSize, FilePointer, Offset);
-      printf("resolution %dx%d\n Header size:%d\n offset: 0x%x\n", Bitmap->Height, Bitmap->Width, Bitmap->HeadSize, (uint32_t)ftell(FilePointer));
+      if (Bitmap->Data != NULL) {
+        fread_offset(Bitmap->Data, sizeof(char), Bitmap->RealSize, FilePointer, Offset);
+        printf("resolution %dx%d\n Header size:%d\n offset: 0x%x\n", Bitmap->Height, Bitmap->Width, Bitmap->HeadSize, (uint32_t)ftell(FilePointer));
+        return true;
+      }
+      else {
+        fputs("Unable to allocate memory\n", stderr);
+        return false;
+      }
     }
-   }
-  else fputs("Error: Invalid File Pointer\n", stderr);
+  else {
+    fputs("Error: Invalid File Pointer\n", stderr);
+    return false;
+    }
+  }
+  return true;
 }
-
 void GetBmpSize(bmp_t *BitmapInfo) {
   uint32_t *Ptr32 = (uint32_t *)(BitmapInfo->Data + 2);
   if (IsLittleEndian()) {  

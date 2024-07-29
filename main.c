@@ -180,29 +180,43 @@ static bool ExtractOut(char *argv[]) {
 }
 
 static bool PackBMP(int argc, char *argv[]) {
-        bmp_t *UserBmp = NULL;
-        const uint32_t argcc = argc;
-        uint32_t ArgCount = argc - (argc - 3);
+        bmp_t *LogoImgBmp = NULL, *UserBmp = NULL;
         FILE *LogoImg = fopen(argv[2], "rb");
         offset_t Offsets = {0, false, NULL, 0};
 
         if (LogoImg != NULL) {
-          uint32_t argo = 0;
           GetOffsets(LogoImg, &Offsets);
           rewind(LogoImg);
 
           if (Offsets.Count != 0 && Offsets.HasLogoHeader) {
-            //LogoImgBmp = calloc(Offsets.Count - 1, sizeof(bmp_t));
+            LogoImgBmp = calloc(Offsets.Count - 1, sizeof(bmp_t));
             UserBmp = calloc(argc - 3, sizeof(bmp_t));
-
-              for (uint32_t c = ArgCount; c < argcc; c++) {
-                FILE *InputBm = fopen(argv[c], "rb");
-                  if (InputBm != NULL) {
-                    argo = argcc - 3;
-                    ReadBMP(InputBm, &UserBmp[argo]);
-                    fclose(InputBm);
+              printf("\n%s %s\n", argv[2], "bitmaps");
+              for (uint32_t c = 0; c < Offsets.Count - 1; c++) {
+                    printf("\n%u:\n", c + 1);
+                    if (ReadMemBmp(&LogoImgBmp[c], LogoImg, Offsets.OffsetList[c + 1])) {
+                    }
+                    
+                    else {
+                      fputs("Bad image file\n", stderr);
+                      return EXIT_FAILURE;
+                    }
                 }
-            }
+                puts("\nUser bitmaps\n");
+                for (int32_t c = argc - (argc - 3); c < argc; c++) {
+                    FILE *UserBm = fopen(argv[c], "rb");
+                    if (UserBm != NULL) {
+                      printf("%d: %s\n", (c - 3) + 1, argv[c]);
+                      if (ReadBMP((UserBm), &UserBmp[c - 3])) {
+                        fclose(UserBm);
+                      }
+                    
+                      else {
+                        fputs("Bad image file\n", stderr);
+                        return EXIT_FAILURE;
+                      }
+                    }
+                }
           }
 
       }
@@ -213,11 +227,11 @@ int main(int argc, char *argv[]) {
     srand((uint32_t)time(NULL));
 
     if ((argc > 3) && !strcmp(argv[1], "-p")) {
-       PackBMP(argc, argv);
+      return PackBMP(argc, argv);
     }
 
     else if ((argc > 2) && !strcmp(argv[1], "-e")) {
-        ExtractBMP(argc, argv);
+       return ExtractBMP(argc, argv);
   }
 
 
