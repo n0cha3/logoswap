@@ -226,7 +226,7 @@ static bool PackBMP(int argc, char *argv[]) {
                       printf("%d: %s\n", (c - 4) + 1, argv[c]);
                       if (ReadBMP((UserBm), &UserBmp[c - 4])) {
                         if ((UserBmp[c - 4].Height == LogoImgBmp[c - 4].Height && UserBmp[c - 4].Width == LogoImgBmp[c - 4].Width) 
-                        && (UserBmp[c - 4].RealSize >= LogoImgBmp[c - 4].HeadSize))
+                        && (UserBmp[c - 4].RealSize <= LogoImgBmp[c - 4].HeadSize))
                         fclose(UserBm);
                       }
                       else {
