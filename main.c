@@ -274,6 +274,9 @@ static bool PackBMP(int argc, char *argv[]) {
         fclose(LogoImg);
       }
     }
+    else {
+      fputs("Invalid filename\n", stderr);
+    }
 
   return EXIT_SUCCESS;
 }
