@@ -8,7 +8,7 @@ A simple utility to help you extract/change logo graphics on various Xiaomi devi
     P.S bitmaps must be of Windows BMP format
     logoswap -o [logo.img] - Output offsets
     logoswap -hdr [logo.img] [Header.bin] - Extract the header (into a file)", 
-    logoswap -p [logo.img] [BitmapN.bmp] ... - Pack bitmaps into image (If some bitmaps weren't provided it will reuse ones found in the provided logo.img)
+    logoswap -p [logo.img] [Output.img] [BitmapN.bmp] ... - Pack bitmaps into image (If some bitmaps weren't provided it will reuse ones found in the provided logo.img)
 
 
 
