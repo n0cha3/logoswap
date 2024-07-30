@@ -89,7 +89,7 @@ static bool ExtractBMP(int argc, char *argv[]) {
                     }
               }
               
-              if (Offsets.OffsetList != NULL) free(Offsets.OffsetList);
+              free(Offsets.OffsetList);
 
             }
 
@@ -128,10 +128,9 @@ static bool ExtractBMP(int argc, char *argv[]) {
                         fclose(Output);
                     }
                 }
-                   
-              }
 
-              if (Offsets.OffsetList != NULL) free(Offsets.OffsetList);
+                free(Offsets.OffsetList);  
+              }
 
             }
             
