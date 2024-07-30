@@ -28,7 +28,7 @@ void GetOffsets(FILE *Logoimg, offset_t *Offsets) {
     }
     else return;
 
-    for (size_t a = 0; a<LogoSize; a++) {
+    for (size_t a = 0; a < LogoSize; a++) {
       if ((Buffer[a] == 'L') && (Buffer[a+1] == 'O') && (Buffer[a+2] == 'G') && (Buffer[a+3] == 'O')) {
         HdrCount++;
         Offsets->HasLogoHeader = true;
@@ -43,7 +43,7 @@ void GetOffsets(FILE *Logoimg, offset_t *Offsets) {
     HdrCount = 0;
 
     if (Offsets->OffsetList != NULL) {
-     for (size_t a = 0; a<LogoSize; a++) {
+     for (size_t a = 0; a < LogoSize; a++) {
        if ((Buffer[a] == 'L') && (Buffer[a+1] == 'O') && (Buffer[a+2] == 'G') && (Buffer[a+3] == 'O')) Offsets->OffsetList[HdrCount] = a;
       
        if ((Buffer[a] == 'B') && (Buffer[a+1] == 'M')) {

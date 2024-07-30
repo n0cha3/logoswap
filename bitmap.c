@@ -53,7 +53,7 @@ void GetBmpSize(bmp_t *BitmapInfo) {
 
 bool ReadBMP(FILE *Bitmap, bmp_t *BitmapInfo) {
   
-  if (Bitmap != NULL && CheckBmp(Bitmap) == true) {
+  if ((Bitmap != NULL) && CheckBmp(Bitmap) == true) {
 
     BitmapInfo->RealSize = GetFileSize(Bitmap);
     

@@ -103,6 +103,7 @@ static bool ExtractBMP(int argc, char *argv[]) {
                         return EXIT_FAILURE;
                       }
                     }
+                    
                   for (uint32_t a = 1; a < Offsets.Count; a++) {
                     ReadMemBmp(&Bitmap, Filep, Offsets.OffsetList[a]);
                     char Filename[14] = "bmp000000.bmp";
@@ -181,17 +182,20 @@ static bool ExtractOut(char *argv[]) {
 
 static bool PackBMP(int argc, char *argv[]) {
         bmp_t *LogoImgBmp = NULL, *UserBmp = NULL;
-        FILE *LogoImg = fopen(argv[2], "rb");
+        FILE *LogoImg = fopen(argv[2], "rb"),
+        *OutputFile = fopen(argv[3], "wb");
         offset_t Offsets = {0, false, NULL, 0};
+        char *Output = NULL;
 
-        if (LogoImg != NULL) {
+        if (LogoImg != NULL && OutputFile != NULL) {
           GetOffsets(LogoImg, &Offsets);
           rewind(LogoImg);
 
           if (Offsets.Count != 0 && Offsets.HasLogoHeader) {
             LogoImgBmp = calloc(Offsets.Count - 1, sizeof(bmp_t));
-            UserBmp = calloc(argc - 3, sizeof(bmp_t));
-              printf("\n%s %s\n", argv[2], "bitmaps");
+            UserBmp = calloc(argc - 4, sizeof(bmp_t));
+
+              printf("\n%s %s:\n", argv[2], "bitmaps");
               for (uint32_t c = 0; c < Offsets.Count - 1; c++) {
                     printf("\n%u:\n", c + 1);
                     if (ReadMemBmp(&LogoImgBmp[c], LogoImg, Offsets.OffsetList[c + 1])) {
@@ -202,30 +206,57 @@ static bool PackBMP(int argc, char *argv[]) {
                       return EXIT_FAILURE;
                     }
                 }
-                puts("\nUser bitmaps\n");
-                for (int32_t c = argc - (argc - 3); c < argc; c++) {
+                puts("\nUser bitmaps:\n");
+
+                for (int32_t c = argc - (argc - 4); c < argc; c++) {
                     FILE *UserBm = fopen(argv[c], "rb");
                     if (UserBm != NULL) {
-                      printf("%d: %s\n", (c - 3) + 1, argv[c]);
-                      if (ReadBMP((UserBm), &UserBmp[c - 3])) {
+                      printf("%d: %s\n", (c - 4) + 1, argv[c]);
+                      if (ReadBMP((UserBm), &UserBmp[c - 4])) {
                         fclose(UserBm);
                       }
-                    
-                      else {
-                        fputs("Bad image file\n", stderr);
-                        return EXIT_FAILURE;
-                      }
+                    }
+                    else {
+                      fputs("Bad image file\n", stderr);
+                      return EXIT_FAILURE;
                     }
                 }
           }
 
       }
+      char *Header = calloc(LOGO_HEADER_SIZE, sizeof(char));
+
+      if (Header != NULL) {
+       fread_offset(Header, sizeof(char), LOGO_HEADER_SIZE, LogoImg, Offsets.OffsetList[0]);
+       rewind(LogoImg);
+      }
+
+      Output = calloc(Offsets.EndOfFile, sizeof(char));
+
+      if (Output != NULL) {
+        memset(Output, 0, Offsets.EndOfFile);
+        memcpy(Output + Offsets.OffsetList[0], Header, LOGO_HEADER_SIZE);
+        free(Header);
+        for (uint32_t c = 1; c < Offsets.Count; c++) {
+          printf("%d %d\n", (4 + c) , argc);
+          if ((4 + c) < (uint32_t) argc) {
+            memcpy(Output + Offsets.OffsetList[c], UserBmp[c - 1].Data, UserBmp[c - 1].HeadSize);
+          }
+          else {
+            memcpy(Output + Offsets.OffsetList[c], LogoImgBmp[c - 1].Data, LogoImgBmp[c - 1].HeadSize);
+          }
+        }
+      }
+
+      fwrite(Output, sizeof(char), Offsets.EndOfFile, OutputFile);
+      free(Output);
+      
+
   return EXIT_SUCCESS;
 }
 
 int main(int argc, char *argv[]) {
     srand((uint32_t)time(NULL));
-
     if ((argc > 3) && !strcmp(argv[1], "-p")) {
       return PackBMP(argc, argv);
     }
@@ -241,7 +272,7 @@ int main(int argc, char *argv[]) {
           "-e [logo.img] [BitmapN.bmp] - Extract the bitmaps from image (if file names are not specified it will use default ones)", 
           "-o [logo.img] - Output offsets", 
           "-hdr [logo.img] [Header.bin] - Get partition header (into a file)", 
-          "-p [logo.img] [BitmapN.bmp] ... - Pack bitmaps into image");
+          "-p [logo.img] [Output.img] [BitmapN.bmp] ... - Pack bitmaps into image");
         }
 
     else if ((argc > 2) && !strcmp(argv[1], "-o")) {
