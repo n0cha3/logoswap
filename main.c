@@ -182,11 +182,27 @@ static bool ExtractOut(char *argv[]) {
 static bool PackBMP(int argc, char *argv[]) {
         bmp_t *LogoImgBmp = NULL, *UserBmp = NULL;
         FILE *LogoImg = fopen(argv[2], "rb"),
-        *OutputFile = fopen(argv[3], "wb");
+        *OutputFile = NULL;
         offset_t Offsets = {0, false, NULL, 0};
         char *Output = NULL;
+                    
+        if (LogoImg != NULL) {
+          OutputFile = fopen(argv[3], "wb");
+          if (OutputFile == NULL) {
+            fprintf(stderr, "Unable to write %s\n", argv[3]);
+            fclose(LogoImg);
+            return EXIT_FAILURE;
+          }
 
-        if (LogoImg != NULL && OutputFile != NULL) {
+          for (int32_t c = argc - 3; c < argc; c++) {
+            if (!strcmp(argv[c], argv[c - 1])) {
+                fputs("Matching filenames", stderr);
+                fclose(LogoImg);
+                fclose(OutputFile);
+                return EXIT_FAILURE;
+            }
+        }
+
           GetOffsets(LogoImg, &Offsets);
           rewind(LogoImg);
 
@@ -197,10 +213,7 @@ static bool PackBMP(int argc, char *argv[]) {
               printf("\n%s %s:\n", argv[2], "bitmaps");
               for (uint32_t c = 0; c < Offsets.Count - 1; c++) {
                     printf("\n%u:\n", c + 1);
-                    if (ReadMemBmp(&LogoImgBmp[c], LogoImg, Offsets.OffsetList[c + 1])) {
-                    }
-                    
-                    else {
+                    if (!ReadMemBmp(&LogoImgBmp[c], LogoImg, Offsets.OffsetList[c + 1])) {
                       fputs("Bad image file\n", stderr);
                       return EXIT_FAILURE;
                     }
@@ -212,7 +225,13 @@ static bool PackBMP(int argc, char *argv[]) {
                     if (UserBm != NULL) {
                       printf("%d: %s\n", (c - 4) + 1, argv[c]);
                       if (ReadBMP((UserBm), &UserBmp[c - 4])) {
+                        if ((UserBmp[c - 4].Height == LogoImgBmp[c - 4].Height && UserBmp[c - 4].Width == LogoImgBmp[c - 4].Width) 
+                        && (UserBmp[c - 4].RealSize >= LogoImgBmp[c - 4].HeadSize))
                         fclose(UserBm);
+                      }
+                      else {
+                        fprintf(stderr, "%s %s\n", argv[c], "Has mismatching resolution or bigger file size than original image");
+                        return EXIT_FAILURE;
                       }
                     }
                     else {
@@ -223,10 +242,10 @@ static bool PackBMP(int argc, char *argv[]) {
           }
 
       }
-      char *Header = calloc(LOGO_HEADER_SIZE, sizeof(char));
+      char *Header1 = calloc(LOGO_HEADER_SIZE, sizeof(char));
 
-      if (Header != NULL) {
-       fread_offset(Header, sizeof(char), LOGO_HEADER_SIZE, LogoImg, Offsets.OffsetList[0]);
+      if (Header1 != NULL) {
+       fread_offset(Header1, sizeof(char), LOGO_HEADER_SIZE, LogoImg, Offsets.OffsetList[0]);
        rewind(LogoImg);
       }
 
@@ -234,21 +253,27 @@ static bool PackBMP(int argc, char *argv[]) {
 
       if (Output != NULL) {
         memset(Output, 0, Offsets.EndOfFile);
-        memcpy(Output + Offsets.OffsetList[0], Header, LOGO_HEADER_SIZE);
-        free(Header);
+        memcpy(Output + Offsets.OffsetList[0], Header1, LOGO_HEADER_SIZE);
+        free(Header1);
         for (uint32_t c = 1; c < Offsets.Count; c++) {
           printf("%d %d\n", (4 + c) , argc);
           if ((4 + c) < (uint32_t) argc) {
             memcpy(Output + Offsets.OffsetList[c], UserBmp[c - 1].Data, UserBmp[c - 1].HeadSize);
+            free(UserBmp[c - 1].Data);
           }
           else {
             memcpy(Output + Offsets.OffsetList[c], LogoImgBmp[c - 1].Data, LogoImgBmp[c - 1].HeadSize);
+            free(LogoImgBmp[c - 1].Data);
           }
         }
+        fwrite(Output, sizeof(char), Offsets.EndOfFile, OutputFile);
+        free(Offsets.OffsetList);
+        free(Output);
+        free(UserBmp);
+        free(LogoImgBmp);
+        fclose(OutputFile);
+        fclose(LogoImg);
       }
-
-      fwrite(Output, sizeof(char), Offsets.EndOfFile, OutputFile);
-      free(Output);
       
 
   return EXIT_SUCCESS;
