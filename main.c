@@ -241,7 +241,6 @@ static bool PackBMP(int argc, char *argv[]) {
                 }
           }
 
-      }
       char *Header1 = calloc(LOGO_HEADER_SIZE, sizeof(char));
 
       if (Header1 != NULL) {
@@ -274,13 +273,14 @@ static bool PackBMP(int argc, char *argv[]) {
         fclose(OutputFile);
         fclose(LogoImg);
       }
-      
+    }
 
   return EXIT_SUCCESS;
 }
 
 int main(int argc, char *argv[]) {
     srand((uint32_t)time(NULL));
+
     if ((argc > 3) && !strcmp(argv[1], "-p")) {
       return PackBMP(argc, argv);
     }
