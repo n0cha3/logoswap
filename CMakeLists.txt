@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.x)
-project("logoswap")
+project(logoswap C)
 add_executable(${PROJECT_NAME} main.c splash.c bitmap.c)
 if(MSVC)
   target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
