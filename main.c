@@ -133,13 +133,19 @@ static bool ExtractBMP(int argc, char *argv[]) {
               }
 
             }
+
+            else {
+              fputs("Bad image file\n", stderr);
+              fclose(Filep);
+              return EXIT_FAILURE;
+          }
             
       fclose(Filep);
     }
-            else {
-              fputs("Bad image file\n", stderr);
-              return EXIT_FAILURE;
-            }
+        else {
+          fputs("Bad image file\n", stderr);
+          return EXIT_FAILURE;
+          }
 
   return EXIT_SUCCESS;
 }
@@ -176,6 +182,7 @@ static bool ExtractOut(char *argv[]) {
             fputs("Invalid file name.\n", stderr);
             return EXIT_FAILURE;
           }
+
   return EXIT_SUCCESS;
 }
 
@@ -229,16 +236,24 @@ static bool PackBMP(int argc, char *argv[]) {
                         && (UserBmp[c - 4].RealSize <= LogoImgBmp[c - 4].HeadSize))
                         fclose(UserBm);
                       }
+
                       else {
                         fprintf(stderr, "%s %s\n", argv[c], "Has mismatching resolution or bigger file size than original image");
                         return EXIT_FAILURE;
                       }
                     }
                     else {
-                      fputs("Bad image file\n", stderr);
+                      fputs("Bad bitmap file\n", stderr);
                       return EXIT_FAILURE;
                     }
                 }
+          }
+
+          else {
+            fputs("Bad image file\n", stderr);
+            fclose(LogoImg);
+            fclose(OutputFile);
+            return EXIT_FAILURE;
           }
 
       char *Header1 = calloc(LOGO_HEADER_SIZE, sizeof(char));
@@ -255,7 +270,9 @@ static bool PackBMP(int argc, char *argv[]) {
         memcpy(Output + Offsets.OffsetList[0], Header1, LOGO_HEADER_SIZE);
         free(Header1);
         for (uint32_t c = 1; c < Offsets.Count; c++) {
+          #ifdef _DEBUG
           printf("%d %d\n", (4 + c) , argc);
+          #endif
           if ((4 + c) < (uint32_t) argc) {
             memcpy(Output + Offsets.OffsetList[c], UserBmp[c - 1].Data, UserBmp[c - 1].HeadSize);
             free(UserBmp[c - 1].Data);
@@ -274,9 +291,8 @@ static bool PackBMP(int argc, char *argv[]) {
         fclose(LogoImg);
       }
     }
-    else {
-      fputs("Invalid filename\n", stderr);
-    }
+        else
+          fputs("Invalid filename\n", stderr);
 
   return EXIT_SUCCESS;
 }

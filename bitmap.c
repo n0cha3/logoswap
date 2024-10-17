@@ -29,10 +29,10 @@ bool ReadMemBmp(bmp_t *Bitmap, FILE *FilePointer, size_t Offset) {
         return false;
       }
     }
-  else {
-    fputs("Error: Invalid File Pointer\n", stderr);
-    return false;
-    }
+    else {
+      fputs("Error: Invalid File Pointer\n", stderr);
+      return false;
+      }
   }
   return true;
 }
